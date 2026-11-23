@@ -8,7 +8,7 @@ Run ten concrete slabs, swing the 20 m gaps on a spring-damper rope, wall-run th
 
 ```bash
 npm install
-npm run dev        # http://localhost:5174 if started from the workspace launcher
+npm run dev        # http://localhost:5173
 npm run build      # tsc --noEmit + production bundle
 npm run typecheck
 ```
@@ -50,7 +50,7 @@ src/
   Game.ts    composition root + fixed-timestep loop
 ```
 
-`src/game` and `src/physics` never import Three.js, so the whole simulation can be driven headlessly. I verified the game that way by calling `world.step(1/120, input)` from the browser console.
+`src/game` and `src/physics` never import Three.js, so the whole simulation can be driven headlessly, for example by calling `world.step(1/120, input)` from the browser console.
 
 ## 120 Hz physics
 
@@ -129,5 +129,5 @@ Shows FPS, substeps per frame, speed, velocity vector, the HFSM parent and leaf 
 - A scripted bot completes the whole course (three gates and the finish), and wall-run, wall-jump, coyote time, jump buffer, slide, the EMP and drone steering behave as described.
 - Restarting five times leaves GPU geometry (62) and texture (11) counts, and the event-listener count, unchanged.
 - That bot only grapples and reels, so it does not exercise the wall-run shortcuts end to end. Its clean 33.7 s run is a baseline, not a par time.
-- I have not played it with a real mouse. Pointer lock and the feel of the controls are untested.
+- Pointer lock and the feel of the controls are not covered by the scripted tests.
 - Not done: gamepad support, a proper capsule collider (the sphere can catch on box edges), and automated tests.
