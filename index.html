@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kinetic Courier</title>
+<style>
+  :root {
+    --ink: #1b1a18;
+    --paper: #e9e0c8;
+    --concrete: #cfc8b8;
+    --orange: #ff5b14;
+    --head: "Arial Narrow", "Franklin Gothic Medium", "Roboto Condensed", Impact, sans-serif;
+    --body: "Trebuchet MS", "Segoe UI", Verdana, sans-serif;
+  }
+  html, body { margin: 0; height: 100%; background: #1b1a18; overflow: hidden; font-family: var(--body); color: var(--ink); user-select: none; }
+  canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  canvas#fx { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; }
+  #vignette { position: fixed; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(27,26,24,0.55) 100%); }
+
+  #hud { position: fixed; inset: 0; pointer-events: none; display: none; }
+  #hud.on { display: block; }
+  .chip { position: absolute; background: var(--paper); border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); padding: 6px 12px; font-family: var(--head); text-transform: uppercase; }
+  #timer { top: 18px; left: 50%; transform: translateX(-50%); font-size: 40px; letter-spacing: 1px; font-variant-numeric: tabular-nums; min-width: 190px; text-align: center; }
+  #best { top: 92px; left: 50%; transform: translateX(-50%); font-size: 14px; padding: 3px 10px; box-shadow: 3px 3px 0 var(--ink); letter-spacing: 1px; }
+  #speed { bottom: 26px; left: 26px; font-size: 54px; line-height: 1; font-variant-numeric: tabular-nums; }
+  #speed small { font-size: 18px; margin-left: 6px; }
+  #progress { bottom: 26px; right: 26px; font-size: 22px; letter-spacing: 1px; }
+  #toast { top: 150px; left: 50%; transform: translateX(-50%); font-size: 26px; opacity: 0; transition: opacity .25s; background: var(--orange); }
+  #toast.on { opacity: 1; }
+  #state { bottom: 100px; left: 26px; font-size: 14px; padding: 2px 8px; box-shadow: 3px 3px 0 var(--ink); letter-spacing: 1px; }
+  #emp { top: 50%; left: 50%; transform: translate(-50%, 70px); background: var(--orange); font-size: 18px; opacity: 0; }
+  #emp.on { opacity: 1; }
+  #cross { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+  #cross i { position: absolute; background: var(--paper); box-shadow: 0 0 0 2px var(--ink); }
+  #cross .dot { width: 4px; height: 4px; left: -2px; top: -2px; }
+  #cross .h { width: 8px; height: 2px; top: -1px; } #cross .v { width: 2px; height: 8px; left: -1px; }
+  #cross .l { left: -22px; } #cross .r { left: 14px; } #cross .t { top: -22px; } #cross .b { top: 14px; }
+  #cross.lock i { background: var(--orange); }
+  #cross.lock .dot { width: 8px; height: 8px; left: -4px; top: -4px; }
+
+  .screen { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(27,26,24,0.55); }
+  .screen.on { display: flex; }
+  .card { background: var(--paper); border: 5px solid var(--ink); box-shadow: 12px 12px 0 var(--ink); padding: 26px 34px; max-width: 640px; width: calc(100vw - 80px); max-height: calc(100vh - 60px); overflow: auto; }
+  .card h1 { font-family: var(--head); font-size: 68px; line-height: .9; margin: 0 0 4px; text-transform: uppercase; letter-spacing: -1px; }
+  .card h1 span { color: var(--orange); }
+  .card h2 { font-family: var(--head); font-size: 44px; margin: 0 0 10px; text-transform: uppercase; }
+  .card p { margin: 6px 0; font-size: 15px; }
+  .keys { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 14px 0; font-size: 14px; }
+  .keys b { font-family: var(--head); text-transform: uppercase; font-size: 15px; letter-spacing: .5px; }
+  .btn { display: inline-block; margin: 8px 8px 0 0; padding: 10px 18px; background: var(--ink); color: var(--paper); font-family: var(--head); font-size: 20px; text-transform: uppercase; border: 3px solid var(--ink); cursor: pointer; pointer-events: auto; }
+  .btn.alt { background: var(--paper); color: var(--ink); }
+  .btn:hover { background: var(--orange); color: var(--ink); }
+  .splits { width: 100%; border-collapse: collapse; margin: 10px 0; font-variant-numeric: tabular-nums; }
+  .splits td { padding: 4px 6px; border-bottom: 2px solid var(--ink); font-size: 16px; }
+  .splits td:last-child { text-align: right; }
+  .good { color: #0b7a46; font-weight: 700; } .bad { color: #b3200d; font-weight: 700; }
+  textarea { width: 100%; box-sizing: border-box; height: 70px; font: 11px monospace; margin-top: 8px; border: 3px solid var(--ink); background: #f6f0de; user-select: text; }
+  .msg { font-size: 13px; min-height: 18px; }
+  #debug { position: fixed; top: 8px; left: 8px; width: 340px; max-height: calc(100vh - 16px); overflow-y: auto; padding: 10px 12px; background: rgba(20,18,16,0.88); border: 2px solid var(--orange); color: #f1e8d0; font: 11px/1.45 ui-monospace, Consolas, monospace; display: none; z-index: 10; user-select: text; }
+  #debug label { display: block; margin-top: 4px; }
+  #debug input[type=range] { width: 100%; }
+  #debug pre { margin: 0 0 8px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<canvas id="fx"></canvas>
+<div id="vignette"></div>
+<div id="hud"></div>
+<div id="screens"></div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
