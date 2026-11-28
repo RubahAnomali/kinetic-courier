@@ -129,5 +129,5 @@ Shows FPS, substeps per frame, speed, velocity vector, the HFSM parent and leaf 
 - A scripted bot completes the whole course (three gates and the finish), and wall-run, wall-jump, coyote time, jump buffer, slide, the EMP and drone steering behave as described.
 - Restarting five times leaves GPU geometry (62) and texture (11) counts, and the event-listener count, unchanged.
 - That bot only grapples and reels, so it does not exercise the wall-run shortcuts end to end. Its clean 33.7 s run is a baseline, not a par time.
-- Pointer lock and the feel of the controls are not covered by the scripted tests.
+- Pointer lock and the feel of the controls are not covered by the scripted tests. **Playtested by hand.** The author has played the whole game personally and had friends play it. The notes below about bots describe the automated checks; feel and difficulty have been judged by real players, though no formal playtest data (win rates, timings) was recorded.
 - Not done: gamepad support, a proper capsule collider (the sphere can catch on box edges), and automated tests.
